@@ -1,7 +1,7 @@
 # DeathBall
 DeathBall - Sadistic football using OpenGL
 
-![image info](./uml/Sketch.png)
+![image info](./uml/sketch.png)
 
 ### UML Diagram
 
