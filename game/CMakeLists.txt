@@ -1,21 +1,25 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 2.6)
 
-project(game LANGUAGES C CXX)
+project(GameDeathBall LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Directory for libraries
-link_directories(game ${PROJECT_SOURCE_DIR}/lib)
+link_directories(GameDeathBallDeathBall ${PROJECT_SOURCE_DIR}/lib)
+
+set(SOURCES
+    main.cpp
+    glad.c)
 
 # Sources
-add_executable(game main.cpp glad.c)
+add_executable(GameDeathBall ${SOURCES})
 
 # Directory for include
-target_include_directories(game PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(GameDeathBall PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
 # Libraries
-target_link_libraries(game libglfw3.a)
+target_link_libraries(GameDeathBall libglfw3.a)
 
 
 
