@@ -5,50 +5,76 @@
 
 using namespace std;
 
+class ShaderWrapper
+{
+public:
+    ShaderWrapper() : m_vertexShaderId(0), m_fragmentShaderId(0), m_programId(0)
+    {
+    }
+
+    void CreateShader(std::string& rVShaderCode, std::string &rFShaderCode)
+    {
+        m_vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
+        const char *pVs = rVShaderCode.c_str();
+        glShaderSource(m_vertexShaderId,1, &pVs, nullptr);
+        CompileShader(m_vertexShaderId);
+
+
+        m_fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
+        const char *pFs = rFShaderCode.c_str();
+        glShaderSource(m_fragmentShaderId,1, &pFs, nullptr);
+        CompileShader(m_fragmentShaderId);
+    }
+
+    void CreateProgram()
+    {
+        m_programId = glCreateProgram();
+
+        glAttachShader(m_programId, m_vertexShaderId);
+        glAttachShader(m_programId, m_fragmentShaderId);
+        glLinkProgram(m_programId);
+        glValidateProgram(m_programId);
+
+        glDeleteShader(m_vertexShaderId);
+        glDeleteShader(m_fragmentShaderId);
+    }
+
+    unsigned int GetProgramId() const
+    {
+        return m_programId;
+    }
+
+private:
+
+    void CompileShader(unsigned int shader)
+    {
+        glCompileShader(shader);
+        // check for shader compile errors
+        int success;
+        char infoLog[512];
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(shader, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        }
+    }
+    std::string m_vertexShaderCode;
+    std::string m_fragmentShaderCode;
+
+    unsigned int m_vertexShaderId;
+    unsigned int m_fragmentShaderId;
+    unsigned int m_programId;
+};
+
+
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
 // settings
 const unsigned int SCR_WIDTH = 1024;
 const unsigned int SCR_HEIGHT = 768;
-
-
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec4 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = aPos;\n"
-    "}\0";
-
-const char *vertexFragmentSource = "#version 330 core\n"
-    "layout (location = 0) out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
-    "}\0";
-
-unsigned int CreateShader()
-{
-    unsigned int program = glCreateProgram();
-
-    unsigned int vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShaderId,1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShaderId);
-
-    unsigned int fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShaderId, 1, &vertexFragmentSource, NULL);
-    glCompileShader(fragmentShaderId);
-
-    glAttachShader(program, vertexShaderId);
-    glAttachShader(program, fragmentShaderId);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    glDeleteShader(vertexShaderId);
-    glDeleteShader(fragmentShaderId);
-
-    return program;
-}
 
 int main()
 {
@@ -98,8 +124,26 @@ int main()
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2 ,0);
     glEnableVertexAttribArray(0);
 
-    unsigned int prog = CreateShader();
-    glUseProgram(prog);
+
+
+    std::string vertexShaderSourceS = "#version 330 core\n"
+        "layout (location = 0) in vec4 aPos;\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = aPos;\n"
+        "}\0";
+
+    std::string vertexFragmentSourceS = "#version 330 core\n"
+        "layout (location = 0) out vec4 FragColor;\n"
+        "void main()\n"
+        "{\n"
+        "   FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
+        "}\0";
+
+    ShaderWrapper ShaderObj;
+    ShaderObj.CreateShader(vertexShaderSourceS,vertexFragmentSourceS);
+    ShaderObj.CreateProgram();
+    glUseProgram(ShaderObj.GetProgramId());
 
 
     // render loop
@@ -115,7 +159,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draw our first triangle
-        glUseProgram(prog);
+        glUseProgram(ShaderObj.GetProgramId());
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
