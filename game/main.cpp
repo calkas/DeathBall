@@ -71,10 +71,11 @@ private:
     unsigned int m_programId;
 };
 
-
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
+
+float g_TranslateX = 0.0f;
+float g_TranslateY = 0.0f;
 
 // settings
 const unsigned int SCR_WIDTH = 1024;
@@ -108,7 +109,7 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-    unsigned int VBO, VAO, EBO;
+
 //    float vertices[6] = {
 //        -0.5f, -0.5f, //0
 //         0.5f, -0.5f, //1
@@ -124,12 +125,50 @@ int main()
         -0.5f,  0.5f, //3
     };
 
-
     unsigned int indicesElement[6] = {
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
     };
 
+
+//    float vertices2[] = {
+//         -0.5f,  0.0f,
+//         -0.5f,  0.5f,
+//          0.0f,  0.0f,
+
+//          0.0f,  0.5f,
+//          0.5f,  0.5f,
+//          0.0f,  0.0f,
+
+//          0.0f,  0.0f,
+//          0.5f,  0.0f,
+//          0.5f, -0.5f,
+
+//          0.0f,  0.0f,
+//          0.0f, -0.5f,
+//         -0.5f, -0.5f
+//    };
+
+    float vertices2[27] = {
+         -0.5f,  0.0f, 0.0f, //0
+         -0.5f,  0.5f, 0.0f, //1
+          0.0f,  0.0f, 0.0f, //2
+          0.0f,  0.5f, 0.0f, //3
+          0.5f,  0.5f, 0.0f, //4
+          0.5f,  0.0f, 0.0f, //5
+          0.5f, -0.5f, 0.0f, //6
+          0.0f, -0.5f, 0.0f, //7
+         -0.5f, -0.5f, 0.0f  //8
+    };
+
+    unsigned int indicesElement2[12] = {
+        0, 1, 2,  // triangle 1
+        3, 4, 2,  // triangle 2
+        5, 6, 2,  // triangle 3
+        2, 7, 8   // triangle 4
+    };
+
+    unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -146,6 +185,26 @@ int main()
     glEnableVertexAttribArray(0);
 
     std::cout<<"VAO: "<<VAO<<" VBO: "<<VBO<< " EBO: "<<EBO<<std::endl;
+
+
+
+    unsigned int VBO2, VAO2, EBO2;
+    glGenVertexArrays(1, &VAO2);
+    glBindVertexArray(VAO2);
+
+    glGenBuffers(1, &VBO2);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+    glBufferData(GL_ARRAY_BUFFER, 27 * sizeof(float), vertices2, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &EBO2);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * sizeof(float), indicesElement2, GL_STATIC_DRAW);
+
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3 ,0);
+    glEnableVertexAttribArray(0);
+
+    std::cout<<"VAO: "<<VAO2<<" VBO: "<<VBO2<< " EBO: "<<EBO2<<std::endl;
 
 
 
@@ -179,6 +238,18 @@ int main()
         "{\n"
         "   gl_Position = u_Transform * aPos;\n"
         "}\0";
+
+
+    std::string transformationVertexShaderSourceS2 = "#version 330 core\n"
+        "layout (location = 0) in vec4 aPos;\n"
+        "uniform mat4 u_model;"
+        "uniform mat4 u_view;"
+        "uniform mat4 u_projection;"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = u_projection * u_view * u_model * aPos;\n"
+        "}\0";
+
     // --------------------------------------------------
 
     ShaderWrapper ShaderObj;
@@ -204,7 +275,7 @@ int main()
 
         // create transformations
         glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+        transform = glm::translate(transform, glm::vec3(g_TranslateX, g_TranslateY, 0.0f));
         transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
 
@@ -216,9 +287,13 @@ int main()
         int uniformLocation = glGetUniformLocation(ShaderObj.GetProgramId(), "u_Color");
         glUniform4f(uniformLocation, 0.0f, greenColor, 0.8f, 1.0f);
 
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        //glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+        glBindVertexArray(VAO2);
+        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
         if (greenColor > 1.0f)
         {
@@ -249,8 +324,18 @@ int main()
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
+    float increment = 0.01f;
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    else if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        g_TranslateY += increment;
+    else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        g_TranslateY -= increment;
+    else if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        g_TranslateX -= increment;
+    else if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        g_TranslateX += increment;
+    cout << "("<<g_TranslateX <<"," <<g_TranslateY <<")"<<endl;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
