@@ -72,6 +72,8 @@ private:
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 float g_TranslateX = 0.0f;
@@ -79,9 +81,29 @@ float g_TranslateY = 0.0f;
 float g_Rotate    =  0.0f;
 float g_Projection = 45.0f;
 
+
+// timing
+float g_DeltaTime = 0.0f;
+float g_LastFrame = 0.0f;
+
+
+
+// camera
+glm::vec3 g_CameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 g_CameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 g_CameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+
+
 // settings
 const unsigned int SCR_WIDTH = 1024;
 const unsigned int SCR_HEIGHT = 768;
+
+bool g_FirstMouse = true;
+float g_Yaw   = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+float g_Pitch =  0.0f;
+float g_LastX =  (float)(SCR_WIDTH / 2);
+float g_LastY =  (float)(SCR_HEIGHT / 2);
+float g_Fov   =  45.0f;
 
 int main()
 {
@@ -103,7 +125,11 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // glad: load all OpenGL function pointers
     // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -236,6 +262,11 @@ int main()
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+
+        float currentFrame = glfwGetTime();
+        g_DeltaTime = currentFrame - g_LastFrame;
+        g_LastFrame = currentFrame;
+
         // input
         // -----
         processInput(window);
@@ -253,14 +284,10 @@ int main()
 
 
         model      = glm::rotate(model, glm::radians(g_Rotate), glm::vec3(1.0f,0.0f,0.0f));
-        view       = glm::translate(view, glm::vec3(g_TranslateX, g_TranslateY, -3.0f));
+        view       = glm::lookAt(g_CameraPos, g_CameraPos + g_CameraFront, g_CameraUp);
 
 
-        //ROTATE
-        view       = glm::rotate(view, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, -1.0f));
-
-
-        projection = glm::perspective(glm::radians(g_Projection), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+        projection = glm::perspective(glm::radians(g_Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 
 
         glUseProgram(ShaderObj.GetProgramId());
@@ -301,30 +328,38 @@ int main()
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
-    float increment = 0.01f;
+    float incrementSpeed = 2.5f * g_DeltaTime;
+    float cameraSpeed = 2.5 * g_DeltaTime;
+
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     else if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        g_TranslateY += increment;
+        g_TranslateY += incrementSpeed;
     else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        g_TranslateY -= increment;
+        g_TranslateY -= incrementSpeed;
     else if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        g_TranslateX -= increment;
+        g_TranslateX -= incrementSpeed;
     else if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        g_TranslateX += increment;
+        g_TranslateX += incrementSpeed;
 
     else if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        g_Rotate += increment;
+        g_Rotate += incrementSpeed;
     else if(glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-        g_Rotate -= increment;
+        g_Rotate -= incrementSpeed;
     else if(glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        g_Projection += increment;
+        g_Projection += incrementSpeed;
     else if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-        g_Projection -= increment;
+        g_Projection -= incrementSpeed;
 
-
-
-    cout << "(x = "<<g_TranslateX <<", y = " <<g_TranslateY << ", r = " <<g_Rotate << ", p = " <<g_Projection <<")"<<endl;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        g_CameraPos += cameraSpeed * g_CameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        g_CameraPos -= cameraSpeed * g_CameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        g_CameraPos -= glm::normalize(glm::cross(g_CameraFront, g_CameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        g_CameraPos += glm::normalize(glm::cross(g_CameraFront, g_CameraUp)) * cameraSpeed;
+    //cout << "(x = "<<g_TranslateX <<", y = " <<g_TranslateY << ", r = " <<g_Rotate << ", p = " <<g_Projection <<")"<<endl;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -334,4 +369,48 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (g_FirstMouse)
+    {
+        g_LastX = xpos;
+        g_LastY = ypos;
+        g_FirstMouse = false;
+    }
+
+    float xoffset = xpos - g_LastX;
+    float yoffset = g_LastY - ypos; // reversed since y-coordinates go from bottom to top
+    g_LastX = xpos;
+    g_LastY = ypos;
+
+    float sensitivity = 0.1f; // change this value to your liking
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    g_Yaw += xoffset;
+    g_Pitch += yoffset;
+
+    // make sure that when pitch is out of bounds, screen doesn't get flipped
+    if (g_Pitch > 89.0f)
+        g_Pitch = 89.0f;
+    if (g_Pitch < -89.0f)
+        g_Pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(g_Yaw)) * cos(glm::radians(g_Pitch));
+    front.y = sin(glm::radians(g_Pitch));
+    front.z = sin(glm::radians(g_Yaw)) * cos(glm::radians(g_Pitch));
+    g_CameraFront = glm::normalize(front);
+
+
+}
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    g_Fov -= (float)yoffset;
+    if (g_Fov < 1.0f)
+        g_Fov = 1.0f;
+    if (g_Fov > 45.0f)
+        g_Fov = 45.0f;
 }
