@@ -76,6 +76,8 @@ void processInput(GLFWwindow *window);
 
 float g_TranslateX = 0.0f;
 float g_TranslateY = 0.0f;
+float g_Rotate    =  0.0f;
+float g_Projection = 45.0f;
 
 // settings
 const unsigned int SCR_WIDTH = 1024;
@@ -110,14 +112,6 @@ int main()
         return -1;
     }
 
-//    float vertices[6] = {
-//        -0.5f, -0.5f, //0
-//         0.5f, -0.5f, //1
-//         0.0f,  0.5f, //2
-//    };
-
-
-
     float vertices[8] = {
          0.5f,  0.5f, //0
          0.5f, -0.5f, //1
@@ -130,24 +124,6 @@ int main()
         1, 2, 3  // second triangle
     };
 
-
-//    float vertices2[] = {
-//         -0.5f,  0.0f,
-//         -0.5f,  0.5f,
-//          0.0f,  0.0f,
-
-//          0.0f,  0.5f,
-//          0.5f,  0.5f,
-//          0.0f,  0.0f,
-
-//          0.0f,  0.0f,
-//          0.5f,  0.0f,
-//          0.5f, -0.5f,
-
-//          0.0f,  0.0f,
-//          0.0f, -0.5f,
-//         -0.5f, -0.5f
-//    };
 
     float vertices2[27] = {
          -0.5f,  0.0f, 0.0f, //0
@@ -253,13 +229,9 @@ int main()
     // --------------------------------------------------
 
     ShaderWrapper ShaderObj;
-    ShaderObj.CreateShader(transformationVertexShaderSourceS,uniformVertexFragmentSourceS);
+    ShaderObj.CreateShader(transformationVertexShaderSourceS2,uniformVertexFragmentSourceS);
     ShaderObj.CreateProgram();
     glUseProgram(ShaderObj.GetProgramId());
-
-
-    float greenColor = 0.01f;
-
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -273,19 +245,35 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
 
-        // create transformations
-        glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        transform = glm::translate(transform, glm::vec3(g_TranslateX, g_TranslateY, 0.0f));
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        glm::mat4 model       = glm::mat4(1.0f);
+        glm::mat4 view        = glm::mat4(1.0f);
+        glm::mat4 projection  = glm::mat4(1.0f);
+
+
+
+        model      = glm::rotate(model, glm::radians(g_Rotate), glm::vec3(1.0f,0.0f,0.0f));
+        view       = glm::translate(view, glm::vec3(g_TranslateX, g_TranslateY, -3.0f));
+
+
+        //ROTATE
+        view       = glm::rotate(view, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, -1.0f));
+
+
+        projection = glm::perspective(glm::radians(g_Projection), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 
 
         glUseProgram(ShaderObj.GetProgramId());
 
-        unsigned int transformLoc = glGetUniformLocation(ShaderObj.GetProgramId(), "u_Transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+        unsigned int modelLoc = glGetUniformLocation(ShaderObj.GetProgramId(), "u_model");
+        unsigned int viewLoc  = glGetUniformLocation(ShaderObj.GetProgramId(), "u_view");
+        unsigned int projectLoc  = glGetUniformLocation(ShaderObj.GetProgramId(), "u_projection");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+        glUniformMatrix4fv(projectLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         int uniformLocation = glGetUniformLocation(ShaderObj.GetProgramId(), "u_Color");
-        glUniform4f(uniformLocation, 0.0f, greenColor, 0.8f, 1.0f);
+        glUniform4f(uniformLocation, 0.0f, glfwGetTime(), 0.8f, 1.0f);
 
         //glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -294,17 +282,6 @@ int main()
 
         glBindVertexArray(VAO2);
         glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-
-        if (greenColor > 1.0f)
-        {
-            greenColor = 0.01f;
-        }
-        else
-        {
-            greenColor += 0.01f;
-        }
-
-
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -335,7 +312,19 @@ void processInput(GLFWwindow *window)
         g_TranslateX -= increment;
     else if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         g_TranslateX += increment;
-    cout << "("<<g_TranslateX <<"," <<g_TranslateY <<")"<<endl;
+
+    else if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        g_Rotate += increment;
+    else if(glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        g_Rotate -= increment;
+    else if(glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+        g_Projection += increment;
+    else if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+        g_Projection -= increment;
+
+
+
+    cout << "(x = "<<g_TranslateX <<", y = " <<g_TranslateY << ", r = " <<g_Rotate << ", p = " <<g_Projection <<")"<<endl;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
