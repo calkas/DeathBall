@@ -170,6 +170,67 @@ int main()
         2, 7, 8   // triangle 4
     };
 
+
+
+
+
+    float CubeVertices[] = {
+            -0.2f, -0.2f, -0.2f,
+             0.2f, -0.2f, -0.2f,
+             0.2f,  0.2f, -0.2f,
+             0.2f,  0.2f, -0.2f,
+            -0.2f,  0.2f, -0.2f,
+            -0.2f, -0.2f, -0.2f,
+
+            -0.2f, -0.2f,  0.2f,
+             0.2f, -0.2f,  0.2f,
+             0.2f,  0.2f,  0.2f,
+             0.2f,  0.2f,  0.2f,
+            -0.2f,  0.2f,  0.2f,
+            -0.2f, -0.2f,  0.2f,
+
+            -0.2f,  0.2f,  0.2f,
+            -0.2f,  0.2f, -0.2f,
+            -0.2f, -0.2f, -0.2f,
+            -0.2f, -0.2f, -0.2f,
+            -0.2f, -0.2f,  0.2f,
+            -0.2f,  0.2f,  0.2f,
+
+             0.2f,  0.2f,  0.2f,
+             0.2f,  0.2f, -0.2f,
+             0.2f, -0.2f, -0.2f,
+             0.2f, -0.2f, -0.2f,
+             0.2f, -0.2f,  0.2f,
+             0.2f,  0.2f,  0.2f,
+
+            -0.2f, -0.2f, -0.2f,
+             0.2f, -0.2f, -0.2f,
+             0.2f, -0.2f,  0.2f,
+             0.2f, -0.2f,  0.2f,
+            -0.2f, -0.2f,  0.2f,
+            -0.2f, -0.2f, -0.2f,
+
+            -0.2f,  0.2f, -0.2f,
+             0.2f,  0.2f, -0.2f,
+             0.2f,  0.2f,  0.2f,
+             0.2f,  0.2f,  0.2f,
+            -0.2f,  0.2f,  0.2f,
+            -0.2f,  0.2f, -0.2f
+        };
+
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.4f,  0.0f),
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 0.0f,  -0.4f,  0.0f),
+        glm::vec3( 0.0f,  -0.8f,  0.0f),
+        glm::vec3( 0.4f,  0.0f,  0.0f),
+        glm::vec3( -0.4f,  0.0f,  0.0f),
+        glm::vec3( -0.4f,  0.0f,  0.0f)
+    };
+
+
+
+    // ----------------------- GROUND -----------------------
     unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -185,45 +246,52 @@ int main()
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2 ,0);
     glEnableVertexAttribArray(0);
+    cout << "GROUND:"<<endl;
+    cout<<"VAO: "<<VAO<<" VBO: "<<VBO<< " EBO: "<<EBO<<endl;
+    // ----------------------- END -----------------------
 
-    std::cout<<"VAO: "<<VAO<<" VBO: "<<VBO<< " EBO: "<<EBO<<std::endl;
 
 
+    unsigned int VBO2, VAO2;
 
-    unsigned int VBO2, VAO2, EBO2;
     glGenVertexArrays(1, &VAO2);
     glBindVertexArray(VAO2);
 
-    glGenBuffers(1, &VBO2);
+
+    glGenVertexArrays(1, &VBO2);
     glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-    glBufferData(GL_ARRAY_BUFFER, 27 * sizeof(float), vertices2, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(CubeVertices), CubeVertices, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &EBO2);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * sizeof(float), indicesElement2, GL_STATIC_DRAW);
-
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3 ,0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
     glEnableVertexAttribArray(0);
 
-    std::cout<<"VAO: "<<VAO2<<" VBO: "<<VBO2<< " EBO: "<<EBO2<<std::endl;
+    cout<<"Cube:"<<endl;
+
+
+
+
+
+//    unsigned int VBO2, VAO2, EBO2;
+//    glGenVertexArrays(1, &VAO2);
+//    glBindVertexArray(VAO2);
+
+//    glGenBuffers(1, &VBO2);
+//    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+//    glBufferData(GL_ARRAY_BUFFER, 27 * sizeof(float), vertices2, GL_STATIC_DRAW);
+
+//    glGenBuffers(1, &EBO2);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2);
+//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * sizeof(float), indicesElement2, GL_STATIC_DRAW);
+
+
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3 ,0);
+//    glEnableVertexAttribArray(0);
+
+    std::cout<<"VAO: "<<VAO2<<" VBO: "<<VBO2<<std::endl;
 
 
 
     // -------------------- SHADERS --------------------
-    std::string vertexShaderSourceS = "#version 330 core\n"
-        "layout (location = 0) in vec4 aPos;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = aPos;\n"
-        "}\0";
-
-    std::string vertexFragmentSourceS = "#version 330 core\n"
-        "layout (location = 0) out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "   FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
-        "}\0";
 
     std::string uniformVertexFragmentSourceS = "#version 330 core\n"
        "out vec4 FragColor;\n"
@@ -232,17 +300,7 @@ int main()
        "{\n"
        "   FragColor = u_Color;\n"
        "}\0";
-
     std::string transformationVertexShaderSourceS = "#version 330 core\n"
-        "layout (location = 0) in vec4 aPos;\n"
-        "uniform mat4 u_Transform;"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = u_Transform * aPos;\n"
-        "}\0";
-
-
-    std::string transformationVertexShaderSourceS2 = "#version 330 core\n"
         "layout (location = 0) in vec4 aPos;\n"
         "uniform mat4 u_model;"
         "uniform mat4 u_view;"
@@ -255,7 +313,7 @@ int main()
     // --------------------------------------------------
 
     ShaderWrapper ShaderObj;
-    ShaderObj.CreateShader(transformationVertexShaderSourceS2,uniformVertexFragmentSourceS);
+    ShaderObj.CreateShader(transformationVertexShaderSourceS,uniformVertexFragmentSourceS);
     ShaderObj.CreateProgram();
     glUseProgram(ShaderObj.GetProgramId());
     // render loop
@@ -277,16 +335,10 @@ int main()
 
 
 
-        glm::mat4 model       = glm::mat4(1.0f);
         glm::mat4 view        = glm::mat4(1.0f);
         glm::mat4 projection  = glm::mat4(1.0f);
 
-
-
-        model      = glm::rotate(model, glm::radians(g_Rotate), glm::vec3(1.0f,0.0f,0.0f));
         view       = glm::lookAt(g_CameraPos, g_CameraPos + g_CameraFront, g_CameraUp);
-
-
         projection = glm::perspective(glm::radians(g_Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 
 
@@ -295,20 +347,39 @@ int main()
         unsigned int modelLoc = glGetUniformLocation(ShaderObj.GetProgramId(), "u_model");
         unsigned int viewLoc  = glGetUniformLocation(ShaderObj.GetProgramId(), "u_view");
         unsigned int projectLoc  = glGetUniformLocation(ShaderObj.GetProgramId(), "u_projection");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(projectLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         int uniformLocation = glGetUniformLocation(ShaderObj.GetProgramId(), "u_Color");
-        glUniform4f(uniformLocation, 0.0f, glfwGetTime(), 0.8f, 1.0f);
-
-        //glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
         glBindVertexArray(VAO2);
-        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+            model = glm::translate(model, cubePositions[i]);
+            model = glm::translate(model, glm::vec3(0.0f,1.0f,0.0f));
+            glUniform4f(uniformLocation, 0.0f, 0.1f * i, 0.2f*i, 1.0f);
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+
+        glm::mat4 model2       = glm::mat4(1.0f);
+        model2      = glm::rotate(model2, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
+        glUniform4f(uniformLocation, 0.0f, 0.0f, 0.8f, 1.0f);
+        glBindVertexArray(VAO);
+
+        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT, 0);
+
+
+
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
