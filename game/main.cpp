@@ -4,7 +4,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw_gl3.h"
 #include <iostream>
 
 using namespace std;
@@ -77,8 +78,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 float g_TranslateX = 0.0f;
-float g_TranslateY = 0.0f;
-float g_Rotate    =  0.0f;
+float g_TranslateY = 1.0f;
+float g_TranslateZ = 0.0f;
+float g_Rotate    =  45.0f;
 float g_Projection = 45.0f;
 
 
@@ -89,7 +91,7 @@ float g_LastFrame = 0.0f;
 
 
 // camera
-glm::vec3 g_CameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 g_CameraPos   = glm::vec3(0.0f, 1.0f,  3.0f);
 glm::vec3 g_CameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 g_CameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
@@ -125,11 +127,11 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    //glfwSetCursorPosCallback(window, mouse_callback);
+   // glfwSetScrollCallback(window, scroll_callback);
 
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // glad: load all OpenGL function pointers
     // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -137,42 +139,6 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
-    float vertices[8] = {
-         0.5f,  0.5f, //0
-         0.5f, -0.5f, //1
-        -0.5f, -0.5f, //2
-        -0.5f,  0.5f, //3
-    };
-
-    unsigned int indicesElement[6] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-
-
-    float vertices2[27] = {
-         -0.5f,  0.0f, 0.0f, //0
-         -0.5f,  0.5f, 0.0f, //1
-          0.0f,  0.0f, 0.0f, //2
-          0.0f,  0.5f, 0.0f, //3
-          0.5f,  0.5f, 0.0f, //4
-          0.5f,  0.0f, 0.0f, //5
-          0.5f, -0.5f, 0.0f, //6
-          0.0f, -0.5f, 0.0f, //7
-         -0.5f, -0.5f, 0.0f  //8
-    };
-
-    unsigned int indicesElement2[12] = {
-        0, 1, 2,  // triangle 1
-        3, 4, 2,  // triangle 2
-        5, 6, 2,  // triangle 3
-        2, 7, 8   // triangle 4
-    };
-
-
-
-
 
     float CubeVertices[] = {
             -0.2f, -0.2f, -0.2f,
@@ -229,67 +195,17 @@ int main()
     };
 
 
-
-    // ----------------------- GROUND -----------------------
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1,&VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), vertices, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(float), indicesElement, GL_STATIC_DRAW);
-
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2 ,0);
-    glEnableVertexAttribArray(0);
-    cout << "GROUND:"<<endl;
-    cout<<"VAO: "<<VAO<<" VBO: "<<VBO<< " EBO: "<<EBO<<endl;
-    // ----------------------- END -----------------------
-
-
-
     unsigned int VBO2, VAO2;
 
     glGenVertexArrays(1, &VAO2);
     glBindVertexArray(VAO2);
 
-
-    glGenVertexArrays(1, &VBO2);
+    glGenBuffers(1,&VBO2);
     glBindBuffer(GL_ARRAY_BUFFER, VBO2);
     glBufferData(GL_ARRAY_BUFFER, sizeof(CubeVertices), CubeVertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
     glEnableVertexAttribArray(0);
-
-    cout<<"Cube:"<<endl;
-
-
-
-
-
-//    unsigned int VBO2, VAO2, EBO2;
-//    glGenVertexArrays(1, &VAO2);
-//    glBindVertexArray(VAO2);
-
-//    glGenBuffers(1, &VBO2);
-//    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-//    glBufferData(GL_ARRAY_BUFFER, 27 * sizeof(float), vertices2, GL_STATIC_DRAW);
-
-//    glGenBuffers(1, &EBO2);
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2);
-//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * sizeof(float), indicesElement2, GL_STATIC_DRAW);
-
-
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3 ,0);
-//    glEnableVertexAttribArray(0);
-
-    std::cout<<"VAO: "<<VAO2<<" VBO: "<<VBO2<<std::endl;
-
-
 
     // -------------------- SHADERS --------------------
 
@@ -312,10 +228,27 @@ int main()
 
     // --------------------------------------------------
 
+
     ShaderWrapper ShaderObj;
     ShaderObj.CreateShader(transformationVertexShaderSourceS,uniformVertexFragmentSourceS);
     ShaderObj.CreateProgram();
     glUseProgram(ShaderObj.GetProgramId());
+
+    // Setup ImGui binding
+     ImGui::CreateContext();
+     ImGuiIO& io = ImGui::GetIO(); (void)io;
+     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+     ImGui_ImplGlfwGL3_Init(window, true);
+
+     // Setup style
+     ImGui::StyleColorsDark();
+     //ImGui::StyleColorsClassic();
+
+    io.DisplaySize.x = SCR_WIDTH;             // set the current display width
+    io.DisplaySize.y = SCR_HEIGHT;             // set the current display height here
+
+
+    ImVec4 color = ImVec4(0.88f, 0.55f, 0.60f, 1.00f);
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -333,62 +266,86 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-
+        ImGui_ImplGlfwGL3_NewFrame();
 
         glm::mat4 view        = glm::mat4(1.0f);
         glm::mat4 projection  = glm::mat4(1.0f);
+        glm::mat4 model       = glm::mat4(1.0f);
 
+        model      = glm::translate(model, glm::vec3(g_TranslateX, g_TranslateY, g_TranslateZ));
         view       = glm::lookAt(g_CameraPos, g_CameraPos + g_CameraFront, g_CameraUp);
         projection = glm::perspective(glm::radians(g_Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
 
-
         glUseProgram(ShaderObj.GetProgramId());
 
-        unsigned int modelLoc = glGetUniformLocation(ShaderObj.GetProgramId(), "u_model");
-        unsigned int viewLoc  = glGetUniformLocation(ShaderObj.GetProgramId(), "u_view");
+        unsigned int modelLoc    = glGetUniformLocation(ShaderObj.GetProgramId(), "u_model");
+        unsigned int viewLoc     = glGetUniformLocation(ShaderObj.GetProgramId(), "u_view");
         unsigned int projectLoc  = glGetUniformLocation(ShaderObj.GetProgramId(), "u_projection");
 
 
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(projectLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         int uniformLocation = glGetUniformLocation(ShaderObj.GetProgramId(), "u_Color");
 
 
         glBindVertexArray(VAO2);
 
-        for (unsigned int i = 0; i < 6; i++)
+//        for (unsigned int i = 0; i < 6; i++)
+//        {
+//            // calculate the model matrix for each object and pass it to shader before drawing
+//            model = glm::translate(model, cubePositions[i]);
+//            //model = glm::translate(model, glm::vec3(g_TranslateX, g_TranslateY, g_TranslateZ));
+//            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+//            glDrawArrays(GL_TRIANGLES, 0, 36);
+//        }
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // render your GUI
+
         {
-            // calculate the model matrix for each object and pass it to shader before drawing
-            glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-            model = glm::translate(model, cubePositions[i]);
-            model = glm::translate(model, glm::vec3(0.0f,1.0f,0.0f));
-            glUniform4f(uniformLocation, 0.0f, 0.1f * i, 0.2f*i, 1.0f);
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+            ImGui::Text("COLOR");
+             ImGui::ColorEdit3("clear color", (float*)&color); // Edit 3 floats representing a color
+             //ImGui::SameLine();
+
+             ImGui::Text("MODEL TRANSLATION");
+             ImGui::SliderFloat("Translation x", &g_TranslateX, -5.0f, 5.0f);
+             ImGui::SliderFloat("Translation y", &g_TranslateY, -5.0f, 5.0f);
+             ImGui::SliderFloat("Translation z", &g_TranslateZ, -10.0f, 10.0f);
+
+             ImGui::Text("CAMERA POSITION");
+             ImGui::Text("Camera Pos: x = %f, y = %f, z = %f", g_CameraPos.x, g_CameraPos.y, g_CameraPos.z);
+             ImGui::Text("Camera Front: x = %f, y = %f, z = %f", g_CameraFront.x, g_CameraFront.y, g_CameraFront.z);
+             ImGui::Text("Camera Up: x = %f, y = %f, z = %f", g_CameraUp.x, g_CameraUp.y, g_CameraUp.z);
+
+             ImGui::Text("FPS");
+             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 
-        glm::mat4 model2       = glm::mat4(1.0f);
-        model2      = glm::rotate(model2, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
-        glUniform4f(uniformLocation, 0.0f, 0.0f, 0.8f, 1.0f);
-        glBindVertexArray(VAO);
-
-        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT, 0);
 
 
+         }
+        glUniform4f(uniformLocation, color.x, color.y, color.z, 1.0f);
 
+        ImGui::Render();
+        ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+
+
+        glViewport(0, 0, display_w, display_h);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    ImGui_ImplGlfwGL3_Shutdown();
+    ImGui::DestroyContext();
+    glDeleteVertexArrays(1, &VAO2);
+    glDeleteBuffers(1, &VBO2);
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();

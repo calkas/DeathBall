@@ -10,7 +10,11 @@ link_directories(GameDeathBallDeathBall ${PROJECT_SOURCE_DIR}/lib)
 
 set(SOURCES
     main.cpp
-    glad.c)
+    glad.c
+    include/imgui/imgui.cpp
+    include/imgui/imgui_demo.cpp
+    include/imgui/imgui_draw.cpp
+    include/imgui/imgui_impl_glfw_gl3.cpp)
 
 # Sources
 add_executable(GameDeathBall ${SOURCES})
